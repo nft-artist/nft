@@ -1372,7 +1372,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     /**
      * @dev See {IERC721-isApprovedForAll}.
      */
-    function isApprovedForAll(address owner, address operator) public view override returns (bool) {
+    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -1752,7 +1752,7 @@ contract ERC721Token is ERC721, Governance, IERC2981 {
 
     string public constant version = "1.0.0";
     
-    address proxyRegistryAddress = "0xaD3eB5b1A9a5729f08C0A623c8EeacFb43Fb6B54";
+    address proxyRegistryAddress = address(0xaD3eB5b1A9a5729f08C0A623c8EeacFb43Fb6B54);
 
     mapping(address => bool) public _minters;
 
