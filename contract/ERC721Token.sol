@@ -1742,13 +1742,18 @@ interface IERC2981 {
 
 pragma solidity ^0.6.0;
 
+contract OwnableDelegateProxy {}
 
-
-
+contract ProxyRegistry {
+    mapping(address => OwnableDelegateProxy) public proxies;
+}
 
 contract ERC721Token is ERC721, Governance, IERC2981 {
 
     string public constant version = "1.0.0";
+    
+    address proxyRegistryAddress = "0xaD3eB5b1A9a5729f08C0A623c8EeacFb43Fb6B54";
+
     mapping(address => bool) public _minters;
 
     /// bytes4(keccak256("royaltyInfo(uint256)")) == 0xcef6d368
@@ -1829,6 +1834,23 @@ contract ERC721Token is ERC721, Governance, IERC2981 {
         _minters[minter] = false;
     }
 
+    /**
+    * Override isApprovedForAll to whitelist user's TreasureLand proxy accounts to enable gas-free listings.
+    */
+    function isApprovedForAll(address _owner, address _operator) public view override returns (bool isOperator) {
+        // Whitelist OpenSea proxy contract for easy trading.
+        ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
+        if (address(proxyRegistry.proxies(_owner)) == _operator) {
+            return true;
+        }
+        return super.isApprovedForAll(_owner, _operator);
+    }
+
+    function updateProxyRegistryAddress(address _proxyRegistryAddress) external onlyGovernance{
+        require(_proxyRegistryAddress != address(0), "No zero address");
+        proxyRegistryAddress = _proxyRegistryAddress;
+    }
+    
     function setCreator(uint256 _tokenId, address _to) public creatorOnly(_tokenId) {
         require(
             _to != address(0),
